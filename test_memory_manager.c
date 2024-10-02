@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
         test_exact_fit_reuse();
         test_double_free();
         test_memory_fragmentation();
-        test_edge_case_allocations();
+        test_edge_case_allocations();   // mem_alloc() should return null when no space left
 
         printf("\nTesting Advanced Memory Management:\n");
         test_frequent_small_allocations();
