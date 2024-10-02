@@ -1,7 +1,8 @@
-#ifndef MYFUNCTIONS_H  // Include guard to prevent multiple inclusions
-#define MYFUNCTIONS_H
+#ifndef MEMORY_MANAGER_H
+#define MEMORY_MANAGER_H
 
 #include <stdbool.h>
+
 
 typedef struct Block {
     int size;
@@ -9,9 +10,6 @@ typedef struct Block {
     void* address;
     struct Block* next;
 } Block;
-
-void* memory_pool;
-Block* head_pool;
 
 void mem_init(int size);
 void* mem_alloc(int size);

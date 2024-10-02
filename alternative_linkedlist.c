@@ -1,12 +1,14 @@
-// #include "memory_manager.h"
-#include "common_defs.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
 #include "linked_list.h"
-#include <stdio.h>  
-#include <stdlib.h>
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include "memory_manager.h"
-#include <string.h>
+
+void* memory_pool;
+Block* head_pool;
 
 void mem_init(int size) {
     memory_pool = malloc(size);
@@ -108,37 +110,17 @@ void mem_deinit() {
     free(memory_pool);
 }
 
+typedef struct Node {
+uint16_t data; 
+struct Node* next;
+} Node;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void list_init(Node** head, size_t size){
-    mem_init(size);
+void list_init(Node** head, int size) {
+    *head = NULL;
 }
 
-void list_insert(Node** head, uint16_t data){
-    Node* new_node = mem_alloc(sizeof(Node));
+void list_insert(Node** head, int data) {
+    Node* new_node = (Node*)mem_alloc(sizeof(Node));
     new_node->data = data;
     new_node->next = NULL;
     if (*head == NULL) {
@@ -150,28 +132,20 @@ void list_insert(Node** head, uint16_t data){
         }
         temp->next = new_node;
     }
+}
 
-
-};
-
-void list_insert_after(Node* prev_node, uint16_t data){
+void list_insert_after(Node* prev_node, int data){
     Node* new_node = (Node*)mem_alloc(sizeof(Node));
     new_node->data = data;
     new_node->next = prev_node->next;
     prev_node->next = new_node;
+}
 
-};
-
-void list_insert_before(Node** head, Node* next_node, uint16_t data){
+void list_insert_before(Node** head, Node* next_node, int data){
     Node* new_node = (Node*)mem_alloc(sizeof(Node));
     new_node->data = data;
     new_node->next = next_node;
     Node* current = *head;
-    if(next_node == *head){
-        new_node->next = *head;
-        *head = new_node;
-        return;
-    }
     while(current->next != next_node){
         current = current->next;
     }
@@ -179,91 +153,35 @@ void list_insert_before(Node** head, Node* next_node, uint16_t data){
 
 }
 
-void list_delete(Node** head, uint16_t data){
+void list_delete(Node** head, int data){
     Node* current = *head;
     Node* prev = NULL;
     while(current->data != data){
         prev = current;
         current = current->next;
     }
-    if(prev == NULL){
-        *head = current->next;
-    } else {
+    if(current->next != NULL){
         prev->next = current->next;
+    }else{
+        prev->next = NULL;
     }
     mem_free(current);
 }
-
-Node* list_search(Node** head, uint16_t data){
+Node* list_search(Node** head, int data){
     Node* current = *head;
-    while(current != NULL){
-        if(current->data == data){
-            return current;
-        }
+    while(current->data != data){
         current = current->next;
     }
-    return NULL;
+    return current;
 }
 
-void list_display(Node** head) {
-    Node* current = *head;
-
-    // Handle the case when the list is empty
-    if (current == NULL) {
-        printf("[]\n");
-        return;
-    }
-
-    printf("[");  // Start the list format
-
-    // Print the first node's data
-    printf("%d", current->data);
-    current = current->next;
-
-    // Loop through and print the remaining nodes with commas separating them
-    while (current != NULL) {
-        printf(", %d", current->data);
+void list_display(Node** head, Node* start_node, Node* end_node){
+    Node* current = start_node;
+    while(current != end_node){
+        printf("%d\n", current->data);
         current = current->next;
     }
-
-    printf("]\n");  // End the list format
 }
-
-void list_display_range(Node** head, Node* start_node, Node* end_node) {
-    if (head == NULL || *head == NULL) {
-        printf("[]\n");
-        return;
-    }
-
-    Node* current = *head;
-
-    // Traverse to start_node if specified
-    if (start_node) {
-        while (current != NULL && current != start_node) {
-            current = current->next;
-        }
-    }
-
-    if (current == NULL) {
-        // If start_node is not found or the list is empty
-        printf("[]\n");
-        return;
-    }
-
-    // Start printing the list range
-    printf("[");
-    bool first = true;  // For proper comma placement
-    while (current != NULL && (end_node == NULL || current != end_node->next)) {
-        if (!first) {
-            printf(", ");
-        }
-        printf("%d", current->data);
-        first = false;
-        current = current->next;
-    }
-    printf("]");
-}
-
 
 int list_count_nodes(Node** head){
     Node* current = *head;
@@ -277,17 +195,20 @@ int list_count_nodes(Node** head){
 
 void list_cleanup(Node** head){
     Node* current = *head;
-    Node* temp;
+    Node* next;
     while(current != NULL){
-        temp = current;
-        current = current->next;
-        mem_free(temp);
+        next = current->next;
+        mem_free(current);
+        current = next;
     }
     *head = NULL;
 }
 
 
-
-
-
-
+void print_all_Nodes(Node** head){
+    Node* current = *head;
+    while(current != NULL){
+        printf("Node at %p, Data: %d\n", (void*)current, current->data);
+        current = current->next;
+    }
+}

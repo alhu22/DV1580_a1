@@ -4,6 +4,9 @@
 #include "memory_manager.h"
 #include <string.h>
 
+void* memory_pool;
+Block* head_pool;
+
 void mem_init(int size) {
     memory_pool = malloc(size);
     if (memory_pool == NULL) {
@@ -29,7 +32,6 @@ void mem_init(int size) {
 void* mem_alloc(int size) {
     Block* current = head_pool;
 
-    Block* prev = current;
     while (current != NULL) {
         if (current->is_free && current->size >= size) {
             current->is_free = false;
@@ -43,7 +45,6 @@ void* mem_alloc(int size) {
             current->next = new_block;
             return current->address;
         }
-        prev = current;
         current = current->next;
     }
     return NULL;
