@@ -83,7 +83,7 @@ void mem_free(void* block) {
 
             // Try to merge with the next block if it's also free
             if (current->next != NULL && current->next->is_free) {
-                current->size += current->next->size + sizeof(Block);
+                current->size += current->next->size;
                 Block* temp = current->next;
                 current->next = current->next->next;
                 free(temp);
@@ -117,4 +117,3 @@ void print_all_blocks() {
         current = current->next;
     }
 }
-

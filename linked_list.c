@@ -6,108 +6,7 @@
 #include "memory_manager.h"
 #include <string.h>
 
-void* memory_pool;
-Block* head_pool;
-
-void mem_init(int size) {
-    memory_pool = malloc(size);
-    if (memory_pool == NULL) {
-        printf("Failed to allocate memory pool.\n");
-        return;
-    }
-
-    // Allocate memory for the head block structure
-    head_pool = (Block*)malloc(sizeof(Block));
-    if (head_pool == NULL) {
-        printf("Failed to allocate head block.\n");
-        free(memory_pool);
-        return;
-    }
-    // Initialize the head block
-    head_pool->address = memory_pool;
-    head_pool->size = size;
-    head_pool->is_free = true;
-    head_pool->next = NULL;
-}
-
-// Allocate memory from the memory pool
-void* mem_alloc(int size) {
-    Block* current = head_pool;
-
-    Block* prev = current;
-    while (current != NULL) {
-        if (current->is_free && current->size >= size) {
-            current->is_free = false;
-            Block* new_block = (Block*)malloc(sizeof(Block));
-            new_block->size = current->size - size;
-            new_block->address = current->address + size;
-            new_block->is_free = true;
-            new_block->next = current->next;
-
-            current->size = size;
-            current->next = new_block;
-            return current->address;
-        }
-        prev = current;
-        current = current->next;
-    }
-    return NULL;
-}
-
-// Resize an allocated memory block
-void* mem_resize(void* block, int size) {
-    Block* current = head_pool;
-    while (current != NULL) {
-        if (current->address == block) {
-            if (current->size >= size) {
-                current->size = size;
-                return block;
-            } else {
-                // Allocate a new block and copy the data
-                void* new_block = mem_alloc(size);
-                if (new_block == NULL) {
-                    return NULL;
-                }
-                memcpy(new_block, block, current->size);
-                mem_free(block);
-                return new_block;
-            }
-        }
-        current = current->next;
-    }
-    return NULL;
-}
-
-// Free an allocated memory block
-void mem_free(void* block) {
-    Block* current = head_pool;
-    while (current != NULL) {
-        if (current->address == block) {
-            current->is_free = true;
-
-            // Try to merge with the next block if it's also free
-            if (current->next != NULL && current->next->is_free) {
-                current->size += current->next->size + sizeof(Block);
-                Block* temp = current->next;
-                current->next = current->next->next;
-                free(temp);
-            }
-            return;
-        }
-        current = current->next;
-    }
-}
-
-// Deallocate the memory pool
-void mem_deinit() {
-    Block* current = head_pool;
-    while (current != NULL) {
-        Block* temp = current;
-        current = current->next;
-        free(temp);
-    }
-    free(memory_pool);
-}
+// Initialize the linked list  -----------------------------------------------------------------------
 
 void list_init(Node** head, size_t size){
     mem_init(size);
@@ -183,31 +82,25 @@ Node* list_search(Node** head, uint16_t data){
 
 void list_display(Node** head) {
     Node* current = *head;
-
-    // Handle the case when the list is empty
+    // If the list is empty
     if (current == NULL) {
-        printf("[]\n");
+        printf("[]");
         return;
     }
-
-    printf("[");  // Start the list format
-
-    // Print the first node's data
+    printf("[");
     printf("%d", current->data);
     current = current->next;
-
-    // Loop through and print the remaining nodes with commas separating them
     while (current != NULL) {
         printf(", %d", current->data);
         current = current->next;
     }
-
-    printf("]\n");  // End the list format
+    printf("]");
 }
 
 void list_display_range(Node** head, Node* start_node, Node* end_node) {
-    if (head == NULL || *head == NULL) {
-        printf("[]\n");
+    // If the list is empty
+    if (*head == NULL) {
+        printf("[]");
         return;
     }
 
@@ -222,7 +115,7 @@ void list_display_range(Node** head, Node* start_node, Node* end_node) {
 
     if (current == NULL) {
         // If start_node is not found or the list is empty
-        printf("[]\n");
+        printf("[]");
         return;
     }
 
